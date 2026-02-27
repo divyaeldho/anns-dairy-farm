@@ -46,6 +46,7 @@ export default function Customers() {
       } else {
          const role = await
         getUserRole(user.uid);
+        console.log("Role:",role);
           if (role !=="admin"){
             router.push("/delivery");
             return;     
