@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/layout/Layout";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import {useRouter} from "next/router";
+import { db,auth,getUserRole } from "../firebase";
 
 export default function Settings() {
   const [settings, setSettings] = useState<any>({
@@ -14,6 +15,23 @@ export default function Settings() {
     curdRates: [],
     dungRates: [],
   });
+  const router = useRouter();
+
+useEffect(() => {
+  const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      router.push("/login");
+    } else {
+      const role = await getUserRole(user.uid);
+
+      if (role !== "admin") {
+        router.push("/");
+      }
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
 
   const [newMilkRate, setNewMilkRate] = useState("");
   const [newEggRate, setNewEggRate] = useState("");

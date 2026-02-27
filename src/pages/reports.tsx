@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/layout/Layout";
-import { auth } from "../firebase";
+import { auth,getUserRole } from "../firebase";
 import { useRouter } from "next/router";
 import {
   collection,
@@ -44,9 +44,16 @@ export default function Reports() {
       if (!user) {
         router.push("/login");
       } else {
-        await fetchData();
-        setLoading(false);
-      }
+  const role = await getUserRole(user.uid);
+
+  if (role !== "admin") {
+    router.push("/");
+    return;
+  }
+
+  await fetchData();
+  setLoading(false);
+}
     });
     return () => unsubscribe();
   }, [selectedMonth, selectedYear]);

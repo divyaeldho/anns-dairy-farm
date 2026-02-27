@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/layout/Layout";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db,getUserRole,auth } from "../firebase";
+import {useRouter} from "next/router";
 import jsPDF from "jspdf";
 
 export default function Billing() {
@@ -19,6 +20,23 @@ export default function Billing() {
     curd: 40,
     chanakapodi: 300,
   });
+  const router = useRouter();
+
+useEffect(() => {
+  const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      router.push("/login");
+    } else {
+      const role = await getUserRole(user.uid);
+
+      if (role !== "admin") {
+        router.push("/");
+      }
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
 
   // Fetch customers
   useEffect(() => {
