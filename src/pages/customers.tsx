@@ -48,8 +48,8 @@ export default function Customers() {
         getUserRole(user.uid);
         console.log("Role:",role);
           if (role !=="admin"){
-            router.push("/delivery");
-            return;     
+            //router.push("/delivery");
+            //return;     
           }
           await fetchData();
           setLoading(false);
