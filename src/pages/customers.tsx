@@ -11,7 +11,7 @@ import {
   updateDoc,
   getDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db,getUserRole } from "../firebase";
 
 export default function Customers() {
   const router = useRouter();
@@ -50,6 +50,20 @@ export default function Customers() {
     });
     return () => unsubscribe();
   }, []);
+  useEffect(() => {
+  const checkRole = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const role = await getUserRole(user.uid);
+
+    if (role !== "admin") {
+      router.push("/delivery");
+    }
+  };
+
+  checkRole();
+}, []);
 
   const fetchData = async () => {
     const custSnap = await getDocs(collection(db, "customers"));
