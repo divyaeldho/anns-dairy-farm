@@ -14,6 +14,7 @@ import {
 import { db,getUserRole } from "../firebase";
 
 export default function Customers() {
+  console.log("CUSTOMERS PAGE LOADED");
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
