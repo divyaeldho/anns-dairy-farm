@@ -44,26 +44,19 @@ export default function Customers() {
       if (!user) {
         router.push("/login");
       } else {
-        await fetchData();
-        setLoading(false);
+         const role = await
+        getUserRole(user.uid);
+          if (role !=="admin"){
+            router.push("/delivery");
+            return;     
+          }
+          await fetchData();
+          setLoading(false);
       }
     });
     return () => unsubscribe();
   }, []);
-  useEffect(() => {
-  const checkRole = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const role = await getUserRole(user.uid);
-
-    if (role !== "admin") {
-      router.push("/delivery");
-    }
-  };
-
-  checkRole();
-}, []);
+  
 
   const fetchData = async () => {
     const custSnap = await getDocs(collection(db, "customers"));
