@@ -47,7 +47,19 @@ export default function Delivery() {
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
-        temp.push({ id: docId, ...snap.data() });
+        const data = snap.data();
+
+        temp.push({ id: docId,
+          customerId: customer.id,
+          customerName: customer.name,
+          date: selectedDate,
+          milk:customer.isPaused ? 0 :
+      data.milk ?? customer.milkLitres,
+          extraMilk: data.extraMilk ?? 0,
+          egg: data.egg ?? 0,
+          curd: data.curd ?? 0,
+          chanakapodi: data.chanakapodi ?? 0,
+         });
       } else {
         temp.push({
           id: docId,
