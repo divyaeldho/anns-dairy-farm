@@ -32,51 +32,55 @@ export default function Delivery() {
     fetchCustomers();
   }, []);
 
-  // 🔹 Generate rows when date or customers change
-  useEffect(() => {
-    if (customers.length === 0) return;
-    generateRows();
-  }, [selectedDate, customers]);
+// 🔹 Generate rows when date or customers change
+useEffect(() => {
+  if (customers.length === 0) return;
+  generateRows();
+}, [selectedDate, customers]);
 
-  const generateRows = async () => {
-    const temp: any[] = [];
+const generateRows = async () => {
+  const temp: any[] = [];
 
-    for (const customer of customers) {
-      const docId = `${selectedDate}_${customer.id}`;
-      const ref = doc(db, "deliveries", docId);
-      const snap = await getDoc(ref);
+  for (const customer of customers) {
+    const docId = ${selectedDate}_${customer.id};
+    const ref = doc(db, "deliveries", docId);
+    const snap = await getDoc(ref);
 
-      if (snap.exists()) {
-        const data = snap.data();
+    if (snap.exists()) {
+      const data = snap.data();
 
-        temp.push({ id: docId,
-          customerId: customer.id,
-          customerName: customer.name,
-          date: selectedDate,
-          milk:customer.isPaused ? 0 :
-      data.milk ?? customer.milkLitres,
-          extraMilk: data.extraMilk ?? 0,
-          egg: data.egg ?? 0,
-          curd: data.curd ?? 0,
-          chanakapodi: data.chanakapodi ?? 0,
-         });
-      } else {
-        temp.push({
-          id: docId,
-          customerId: customer.id,
-          customerName: customer.name,
-          date: selectedDate,
-          milk: customer.isPaused ? 0 : customer.milkLitres,
-          extraMilk: 0,
-          egg: 0,
-          curd: 0,
-          chanakapodi: 0,
-        });
-      }
+      temp.push({
+        id: docId,
+        customerId: customer.id,
+        customerName: customer.name,
+        date: selectedDate,
+        milk: customer.isPaused
+          ? 0
+          : data?.milk ?? Number(customer.milkLitres),
+        extraMilk: data?.extraMilk ?? 0,
+        egg: data?.egg ?? 0,
+        curd: data?.curd ?? 0,
+        chanakapodi: data?.chanakapodi ?? 0,
+      });
+    } else {
+      temp.push({
+        id: docId,
+        customerId: customer.id,
+        customerName: customer.name,
+        date: selectedDate,
+        milk: customer.isPaused
+          ? 0
+          : Number(customer.milkLitres),
+        extraMilk: 0,
+        egg: 0,
+        curd: 0,
+        chanakapodi: 0,
+      });
     }
+  }
 
-    setRows(temp);
-  };
+  setRows(temp);
+};
 
   const handleChange = (index: number, field: string, value: any) => {
     const updated = [...rows];
