@@ -42,7 +42,7 @@ const generateRows = async () => {
   const temp: any[] = [];
 
   for (const customer of customers) {
-    const docId = ${selectedDate}_${customer.id};
+    const docId = `${selectedDate}_${customer.id}`;
     const ref = doc(db, "deliveries", docId);
     const snap = await getDoc(ref);
 
