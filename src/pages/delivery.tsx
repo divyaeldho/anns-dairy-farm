@@ -20,9 +20,9 @@ export default function Delivery() {
 
         list.push({
           id: docSnap.id,
-          name: data.name,
-          milkLitres: data.milkLitres || 0,
-          isPaused: data.isPaused || false,
+          name: data.name ?? "",
+          milkLitres: data.milkLitres ?? 0,   // ✅ FIXED HERE
+          isPaused: data.isPaused ?? false,
         });
       });
 
@@ -34,7 +34,7 @@ export default function Delivery() {
 
   // 🔹 Generate rows when date or customers change
   useEffect(() => {
-    if (customers.length === 0) return; 
+    if (customers.length === 0) return;
     generateRows();
   }, [selectedDate, customers]);
 
@@ -80,17 +80,19 @@ export default function Delivery() {
   };
 
   return (
-    <div style={{ padding: "30px" }}>
+    <div style={{ padding: "30px", background: "#f9fafb", minHeight: "100vh" }}>
       <h2 style={{ marginBottom: "20px" }}>Delivery Log</h2>
 
       <div style={{ marginBottom: "20px" }}>
-        <label style={{ marginRight: "10px" }}>Select Date:</label>
+        <label style={{ marginRight: "10px", fontWeight: "bold" }}>
+          Select Date:
+        </label>
         <input
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
           style={{
-            padding: "6px",
+            padding: "8px",
             borderRadius: "6px",
             border: "1px solid #ccc",
           }}
@@ -102,6 +104,7 @@ export default function Delivery() {
           width: "100%",
           borderCollapse: "collapse",
           background: "#fff",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       >
         <thead>
@@ -183,13 +186,14 @@ export default function Delivery() {
         onClick={saveDelivery}
         style={{
           marginTop: "25px",
-          padding: "10px 20px",
+          padding: "12px 25px",
           backgroundColor: "#28a745",
           color: "#fff",
           border: "none",
           borderRadius: "8px",
           cursor: "pointer",
           fontWeight: "bold",
+          fontSize: "14px",
         }}
       >
         Save Delivery
@@ -199,17 +203,17 @@ export default function Delivery() {
 }
 
 const thStyle = {
-  padding: "10px",
+  padding: "12px",
   border: "1px solid #ddd",
   textAlign: "left" as const,
 };
 
 const tdStyle = {
-  padding: "8px",
+  padding: "10px",
   border: "1px solid #ddd",
 };
 
 const inputStyle = {
-  width: "70px",
-  padding: "4px",
+  width: "80px",
+  padding: "6px",
 };
