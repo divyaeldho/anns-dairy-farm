@@ -34,7 +34,8 @@ export default function Delivery() {
 
   // 🔹 Generate rows when date or customers change
   useEffect(() => {
-    if (customers.length > 0) generateRows();
+    if (customers.length === 0) return; 
+    generateRows();
   }, [selectedDate, customers]);
 
   const generateRows = async () => {
