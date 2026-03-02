@@ -5,91 +5,182 @@ import { useRouter } from "next/router";
 import {
   collection,
   getDocs,
+  doc,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
-
-interface Delivery {
-  id: string;
-  customerName: string;
-  milk: number;
-  extraMilk?: number;
-  egg?: number;
-  curd?: number;
-  chanakapodi?: number;
-  date: string;
-}
 
 export default function Delivery() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [deliveryData, setDeliveryData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // AUTH CHECK (Admin + Staff allowed)
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
         router.push("/login");
       } else {
-        await fetchDeliveries();
-        setLoading(false);
+        fetchCustomers();
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const fetchDeliveries = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "deliveries"));
-      const data: Delivery[] = [];
+  // Fetch Customers
+  const fetchCustomers = async () => {
+    const snap = await getDocs(collection(db, "customers"));
+    const data: any[] = [];
 
-      snapshot.forEach((doc) => {
-        data.push({
-          id: doc.id,
-          ...(doc.data() as Omit<Delivery, "id">),
-        });
-      });
+    snap.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
 
-      setDeliveries(data);
-    } catch (error) {
-      console.error("Error fetching deliveries:", error);
-    }
+    setCustomers(data);
+    setLoading(false);
   };
 
-  if (loading) return <p>Loading...</p>;
+  // Load delivery for selected date
+  useEffect(() => {
+    if (customers.length > 0) {
+      generateDeliveryData();
+    }
+  }, [selectedDate, customers]);
+
+  const generateDeliveryData = async () => {
+    const rows = [];
+
+    for (const customer of customers) {
+      const docId = `${selectedDate}_${customer.id}`;
+      const docRef = doc(db, "deliveries", docId);
+      const snap = await getDoc(docRef);
+
+      if (snap.exists()) {
+        rows.push({ id: docId, ...snap.data() });
+      } else {
+        rows.push({
+          id: docId,
+          customerId: customer.id,
+          customerName: customer.name,
+          date: selectedDate,
+          milk: customer.paused ? 0 : customer.milk || 0,
+          extraMilk: 0,
+          egg: 0,
+          curd: 0,
+          chanakapodi: 0,
+        });
+      }
+    }
+
+    setDeliveryData(rows);
+  };
+
+  const handleChange = (index: number, field: string, value: any) => {
+    const updated = [...deliveryData];
+    updated[index][field] = Number(value);
+    setDeliveryData(updated);
+  };
+
+  const saveDeliveries = async () => {
+    for (const row of deliveryData) {
+      const docRef = doc(db, "deliveries", row.id);
+      await setDoc(docRef, row);
+    }
+
+    alert("Delivery saved successfully!");
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <Layout>
-      <h1 style={{ marginBottom: "20px" }}>Delivery Log</h1>
+      <h2>Delivery Log</h2>
 
-      {deliveries.length === 0 ? (
-        <p>No deliveries found</p>
-      ) : (
-        <table border={1} cellPadding={10}>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Milk</th>
-              <th>Extra Milk</th>
-              <th>Egg</th>
-              <th>Curd</th>
-              <th>Chanakapodi</th>
+      <input
+        type="date"
+        value={selectedDate}
+        onChange={(e) => setSelectedDate(e.target.value)}
+      />
+
+      <table border={1} cellPadding={5} style={{ marginTop: "20px" }}>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Milk</th>
+            <th>Extra Milk</th>
+            <th>Egg</th>
+            <th>Curd</th>
+            <th>Chanakapodi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {deliveryData.map((row, index) => (
+            <tr key={row.id}>
+              <td>{row.customerName}</td>
+
+              <td>
+                <input
+                  type="number"
+                  value={row.milk}
+                  onChange={(e) =>
+                    handleChange(index, "milk", e.target.value)
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  value={row.extraMilk}
+                  onChange={(e) =>
+                    handleChange(index, "extraMilk", e.target.value)
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  value={row.egg}
+                  onChange={(e) =>
+                    handleChange(index, "egg", e.target.value)
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  value={row.curd}
+                  onChange={(e) =>
+                    handleChange(index, "curd", e.target.value)
+                  }
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  value={row.chanakapodi}
+                  onChange={(e) =>
+                    handleChange(index, "chanakapodi", e.target.value)
+                  }
+                />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {deliveries.map((item) => (
-              <tr key={item.id}>
-                <td>{item.date}</td>
-                <td>{item.customerName}</td>
-                <td>{item.milk}</td>
-                <td>{item.extraMilk || 0}</td>
-                <td>{item.egg || 0}</td>
-                <td>{item.curd || 0}</td>
-                <td>{item.chanakapodi || 0}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
+
+      <button onClick={saveDeliveries} style={{ marginTop: "20px" }}>
+        Save Delivery
+      </button>
     </Layout>
   );
 }
